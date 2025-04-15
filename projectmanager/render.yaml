@@ -3,7 +3,7 @@ services:
     name: projectmanager
     env: node
     plan: starter
-    buildCommand: npm install && npm run build
+    buildCommand: npm install && npm install date-fns@2.30.0 --save && npm run build
     startCommand: npm run start
     envVars:
       - key: NODE_VERSION
