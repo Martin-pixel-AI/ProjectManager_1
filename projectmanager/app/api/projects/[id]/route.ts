@@ -1,9 +1,10 @@
 import { NextResponse } from 'next/server';
 import connectDB from '@/lib/db';
 import Project from '@/models/Project';
-import { withAuth } from '@/utils/authMiddleware';
 import { NextRequest } from 'next/server';
 import mongoose from 'mongoose';
+import { getServerSession } from 'next-auth/next';
+import { authOptions } from '@/app/api/auth/[...nextauth]/route';
 
 // Get a specific project
 export async function GET(
@@ -23,15 +24,16 @@ export async function GET(
       );
     }
     
-    // Get user from request (added by middleware)
-    const userId = req.user?.id;
-    
-    if (!userId) {
+    // Get user from NextAuth session
+    const session = await getServerSession(authOptions);
+    if (!session || !session.user || !session.user.id) {
       return NextResponse.json(
         { message: 'Unauthorized' },
         { status: 401 }
       );
     }
+    
+    const userId = session.user.id;
     
     // Find project
     const project = await Project.findById(id)
@@ -86,15 +88,16 @@ export async function PUT(
       );
     }
     
-    // Get user from request (added by middleware)
-    const userId = req.user?.id;
-    
-    if (!userId) {
+    // Get user from NextAuth session
+    const session = await getServerSession(authOptions);
+    if (!session || !session.user || !session.user.id) {
       return NextResponse.json(
         { message: 'Unauthorized' },
         { status: 401 }
       );
     }
+    
+    const userId = session.user.id;
     
     // Find project
     const project = await Project.findById(id);
@@ -106,7 +109,7 @@ export async function PUT(
       );
     }
     
-    // Check if user is owner
+    // Check if user is the owner
     if (project.owner.toString() !== userId) {
       return NextResponse.json(
         { message: 'Unauthorized: Only the project owner can update it' },
@@ -116,15 +119,23 @@ export async function PUT(
     
     const { name, description, startDate, endDate, members, color } = await req.json();
     
+    // Validate input
+    if (!name || !startDate || !endDate) {
+      return NextResponse.json(
+        { message: 'Name, start date, and end date are required' },
+        { status: 400 }
+      );
+    }
+    
     // Update project
     const updatedProject = await Project.findByIdAndUpdate(
       id,
       {
-        name: name || project.name,
-        description: description !== undefined ? description : project.description,
-        startDate: startDate || project.startDate,
-        endDate: endDate || project.endDate,
-        members: members || project.members,
+        name,
+        description: description || '',
+        startDate,
+        endDate,
+        members: members || [],
         color: color || project.color,
       },
       { new: true }
@@ -160,15 +171,16 @@ export async function DELETE(
       );
     }
     
-    // Get user from request (added by middleware)
-    const userId = req.user?.id;
-    
-    if (!userId) {
+    // Get user from NextAuth session
+    const session = await getServerSession(authOptions);
+    if (!session || !session.user || !session.user.id) {
       return NextResponse.json(
         { message: 'Unauthorized' },
         { status: 401 }
       );
     }
+    
+    const userId = session.user.id;
     
     // Find project
     const project = await Project.findById(id);
@@ -180,7 +192,7 @@ export async function DELETE(
       );
     }
     
-    // Check if user is owner
+    // Check if user is the owner
     if (project.owner.toString() !== userId) {
       return NextResponse.json(
         { message: 'Unauthorized: Only the project owner can delete it' },
@@ -188,11 +200,17 @@ export async function DELETE(
       );
     }
     
+    // Delete all tasks associated with the project
+    const Task = mongoose.models.Task;
+    if (Task) {
+      await Task.deleteMany({ project: id });
+    }
+    
     // Delete project
     await Project.findByIdAndDelete(id);
     
     return NextResponse.json(
-      { message: 'Project deleted successfully' },
+      { message: 'Project and all associated tasks deleted successfully' },
       { status: 200 }
     );
   } catch (error: any) {
@@ -202,9 +220,4 @@ export async function DELETE(
       { status: 500 }
     );
   }
-}
-
-// Apply middleware to all handlers
-export const GET_handler = withAuth(GET);
-export const PUT_handler = withAuth(PUT);
-export const DELETE_handler = withAuth(DELETE); 
+} 

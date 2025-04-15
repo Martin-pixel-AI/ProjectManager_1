@@ -2,9 +2,10 @@ import { NextResponse } from 'next/server';
 import connectDB from '@/lib/db';
 import Task from '@/models/Task';
 import Project from '@/models/Project';
-import { withAuth } from '@/utils/authMiddleware';
 import { NextRequest } from 'next/server';
 import mongoose from 'mongoose';
+import { getServerSession } from 'next-auth/next';
+import { authOptions } from '@/app/api/auth/[...nextauth]/route';
 
 // Get a specific task
 export async function GET(
@@ -24,13 +25,16 @@ export async function GET(
       );
     }
     
-    const userId = req.user?.id;
-    if (!userId) {
+    // Get user from NextAuth session
+    const session = await getServerSession(authOptions);
+    if (!session || !session.user || !session.user.id) {
       return NextResponse.json(
         { message: 'Unauthorized' },
         { status: 401 }
       );
     }
+    
+    const userId = session.user.id;
     
     // Find task with populated references
     const task = await Task.findById(id)
@@ -106,13 +110,16 @@ export async function PUT(
       );
     }
     
-    const userId = req.user?.id;
-    if (!userId) {
+    // Get user from NextAuth session
+    const session = await getServerSession(authOptions);
+    if (!session || !session.user || !session.user.id) {
       return NextResponse.json(
         { message: 'Unauthorized' },
         { status: 401 }
       );
     }
+    
+    const userId = session.user.id;
     
     // Find task
     const task = await Task.findById(id);
@@ -156,15 +163,24 @@ export async function PUT(
       dueDate
     } = await req.json();
     
-    // Update task
+    // Build update data
     const updateData: any = {};
     
     if (title) updateData.title = title;
     if (description !== undefined) updateData.description = description;
-    if (assignedTo) updateData.assignedTo = assignedTo;
-    if (reviewedBy) updateData.reviewedBy = reviewedBy;
+    if (assignedTo !== undefined) updateData.assignedTo = assignedTo || null;
+    if (reviewedBy !== undefined) updateData.reviewedBy = reviewedBy || null;
     if (priority) updateData.priority = priority;
-    if (status) updateData.status = status;
+    if (status) {
+      updateData.status = status;
+      
+      // If status changed to completed, set completedAt
+      if (status === 'completed' && task.status !== 'completed') {
+        updateData.completedAt = new Date();
+      } else if (status !== 'completed') {
+        updateData.completedAt = null;
+      }
+    }
     if (startDate) updateData.startDate = startDate;
     if (dueDate) updateData.dueDate = dueDate;
     
@@ -217,13 +233,16 @@ export async function DELETE(
       );
     }
     
-    const userId = req.user?.id;
-    if (!userId) {
+    // Get user from NextAuth session
+    const session = await getServerSession(authOptions);
+    if (!session || !session.user || !session.user.id) {
       return NextResponse.json(
         { message: 'Unauthorized' },
         { status: 401 }
       );
     }
+    
+    const userId = session.user.id;
     
     // Find task
     const task = await Task.findById(id);
@@ -271,9 +290,4 @@ export async function DELETE(
       { status: 500 }
     );
   }
-}
-
-// Apply middleware to all handlers
-export const GET_handler = withAuth(GET);
-export const PUT_handler = withAuth(PUT);
-export const DELETE_handler = withAuth(DELETE); 
+} 
