@@ -8,6 +8,7 @@ import { useCurrentUser } from '@/src/lib/useCurrentUser';
 import { Button } from '@/components/ui/Button';
 import { Spinner } from '@/components/ui/Spinner';
 import { Project } from '@/utils/types';
+import { AlertError } from '@/components/ui/AlertError';
 
 export default function ProjectsPage() {
   const [projects, setProjects] = useState<Project[]>([]);
@@ -59,19 +60,17 @@ export default function ProjectsPage() {
   return (
     <div>
       <div className="mb-6 flex justify-between items-center">
-        <h1 className="text-3xl font-bold">Projects</h1>
+        <h1 className="text-2xl font-bold">Projects</h1>
         <Link href="/projects/new">
-          <Button>Create Project</Button>
+          <Button>Create New Project</Button>
         </Link>
       </div>
-
+      
+      {error && <AlertError message={error} onClose={() => setError(null)} />}
+      
       {loading ? (
         <div className="flex justify-center my-12">
           <Spinner size="lg" />
-        </div>
-      ) : error ? (
-        <div className="bg-red-50 p-4 rounded-md my-6">
-          <p className="text-red-700">{error}</p>
         </div>
       ) : projects.length === 0 ? (
         <div className="text-center py-12 bg-white rounded-lg shadow-md">

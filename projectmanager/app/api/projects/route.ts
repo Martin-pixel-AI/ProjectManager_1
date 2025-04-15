@@ -1,23 +1,25 @@
 import { NextResponse } from 'next/server';
 import connectDB from '@/lib/db';
 import Project from '@/models/Project';
-import { withAuth } from '@/utils/authMiddleware';
 import { NextRequest } from 'next/server';
+import { getServerSession } from 'next-auth/next';
+import { authOptions } from '@/app/api/auth/[...nextauth]/route';
 
 // Get all projects
 export async function GET(req: NextRequest) {
   try {
     await connectDB();
     
-    // Get user from request (added by middleware)
-    const userId = req.user?.id;
-    
-    if (!userId) {
+    // Get user from NextAuth session
+    const session = await getServerSession(authOptions);
+    if (!session || !session.user || !session.user.id) {
       return NextResponse.json(
         { message: 'Unauthorized' },
         { status: 401 }
       );
     }
+    
+    const userId = session.user.id;
     
     // Find projects where user is owner or member
     const projects = await Project.find({
@@ -42,22 +44,23 @@ export async function POST(req: NextRequest) {
   try {
     await connectDB();
     
-    // Get user from request (added by middleware)
-    const userId = req.user?.id;
-    
-    if (!userId) {
+    // Get user from NextAuth session
+    const session = await getServerSession(authOptions);
+    if (!session || !session.user || !session.user.id) {
       return NextResponse.json(
         { message: 'Unauthorized' },
         { status: 401 }
       );
     }
     
-    const { name, description, startDate, endDate, members, color } = await req.json();
+    const userId = session.user.id;
     
-    // Validate input
+    const { name, description, startDate, endDate, color, members } = await req.json();
+    
+    // Validate required fields
     if (!name || !startDate || !endDate) {
       return NextResponse.json(
-        { message: 'Name, start date, and end date are required' },
+        { message: 'Project name, start date, and end date are required' },
         { status: 400 }
       );
     }
@@ -66,13 +69,14 @@ export async function POST(req: NextRequest) {
     const project = await Project.create({
       name,
       description: description || '',
-      owner: userId,
       startDate,
       endDate,
-      members: members || [],
       color: color || '#4F46E5',
+      owner: userId,
+      members: members || []
     });
     
+    // Populate owner and members references
     const populatedProject = await Project.findById(project._id)
       .populate('owner', 'name email')
       .populate('members', 'name email');
@@ -85,8 +89,4 @@ export async function POST(req: NextRequest) {
       { status: 500 }
     );
   }
-}
-
-// Apply middleware to all handlers
-export const GET_handler = withAuth(GET);
-export const POST_handler = withAuth(POST); 
+} 

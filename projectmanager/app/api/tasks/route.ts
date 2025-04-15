@@ -2,23 +2,27 @@ import { NextResponse } from 'next/server';
 import connectDB from '@/lib/db';
 import Task from '@/models/Task';
 import Project from '@/models/Project';
-import { withAuth } from '@/utils/authMiddleware';
 import { NextRequest } from 'next/server';
 import mongoose from 'mongoose';
 import { Types } from 'mongoose';
+import { getServerSession } from 'next-auth/next';
+import { authOptions } from '@/app/api/auth/[...nextauth]/route';
 
 // Get all tasks or filtered by project
 export async function GET(req: NextRequest) {
   try {
     await connectDB();
     
-    const userId = req.user?.id;
-    if (!userId) {
+    // Get user from NextAuth session
+    const session = await getServerSession(authOptions);
+    if (!session || !session.user || !session.user.id) {
       return NextResponse.json(
         { message: 'Unauthorized' },
         { status: 401 }
       );
     }
+    
+    const userId = session.user.id;
     
     // Get query parameters
     const url = new URL(req.url);
@@ -115,13 +119,16 @@ export async function POST(req: NextRequest) {
   try {
     await connectDB();
     
-    const userId = req.user?.id;
-    if (!userId) {
+    // Get user from NextAuth session
+    const session = await getServerSession(authOptions);
+    if (!session || !session.user || !session.user.id) {
       return NextResponse.json(
         { message: 'Unauthorized' },
         { status: 401 }
       );
     }
+    
+    const userId = session.user.id;
     
     const {
       title,
@@ -205,8 +212,4 @@ export async function POST(req: NextRequest) {
       { status: 500 }
     );
   }
-}
-
-// Apply middleware to all handlers
-export const GET_handler = withAuth(GET);
-export const POST_handler = withAuth(POST); 
+} 

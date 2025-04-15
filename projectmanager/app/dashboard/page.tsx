@@ -7,6 +7,7 @@ import Link from 'next/link';
 import { useCurrentUser } from '@/src/lib/useCurrentUser';
 import { Button } from '@/components/ui/Button';
 import { Spinner } from '@/components/ui/Spinner';
+import { AlertError } from '@/components/ui/AlertError';
 import { Project, Task } from '@/utils/types';
 
 export default function DashboardPage() {
@@ -74,13 +75,11 @@ export default function DashboardPage() {
         <p className="text-gray-600">Welcome back, {user?.name}!</p>
       </div>
 
+      {error && <AlertError message={error} onClose={() => setError(null)} />}
+
       {loading ? (
         <div className="flex justify-center my-12">
           <Spinner size="lg" />
-        </div>
-      ) : error ? (
-        <div className="bg-red-50 p-4 rounded-md my-6">
-          <p className="text-red-700">{error}</p>
         </div>
       ) : (
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
