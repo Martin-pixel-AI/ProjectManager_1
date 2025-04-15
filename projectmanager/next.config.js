@@ -8,6 +8,10 @@ const nextConfig = {
     // !! WARN !!
     ignoreBuildErrors: true,
   },
+  // Решаем проблемы с роутингом
+  experimental: {
+    appDir: true,
+  },
 };
 
 module.exports = nextConfig; 
