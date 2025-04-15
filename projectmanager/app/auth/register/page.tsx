@@ -76,7 +76,7 @@ export default function RegisterPage() {
         setError(null);
         
         // Create user in database
-        await axios.post('/api/user', {
+        await axios.post('/api/auth/register', {
           name,
           email,
           password,
