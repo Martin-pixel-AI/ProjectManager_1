@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
-import connectDB from '@/lib/db';
-import User from '@/models/User';
-import Settings from '@/models/Settings';
+import connectDB from '@/src/lib/db';
+import User from '@/src/models/User';
+import Settings from '@/src/models/Settings';
 import jwt from 'jsonwebtoken';
 
 const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key';
