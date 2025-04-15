@@ -8,10 +8,7 @@ const nextConfig = {
     // !! WARN !!
     ignoreBuildErrors: true,
   },
-  // Позволяем серверу обрабатывать запросы через API
-  experimental: {
-    serverActions: true,
-  },
+  // Server Actions are available by default now
 };
 
 module.exports = nextConfig; 

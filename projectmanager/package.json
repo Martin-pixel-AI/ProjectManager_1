@@ -6,7 +6,8 @@
     "dev": "next dev --turbopack",
     "build": "next build --no-lint",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "deploy": "NODE_OPTIONS='--max-old-space-size=8192' next build --no-lint"
   },
   "dependencies": {
     "@apollo/client": "^3.13.7",
