@@ -5,6 +5,7 @@ import Project from '@/models/Project';
 import { withAuth } from '@/utils/authMiddleware';
 import { NextRequest } from 'next/server';
 import mongoose from 'mongoose';
+import { Types } from 'mongoose';
 
 // Get all tasks or filtered by project
 export async function GET(req: NextRequest) {
@@ -50,7 +51,7 @@ export async function GET(req: NextRequest) {
       
       const isOwner = project.owner.toString() === userId;
       const isMember = project.members.some(
-        (memberId: any) => memberId.toString() === userId
+        (memberId: Types.ObjectId) => memberId.toString() === userId
       );
       
       if (!isOwner && !isMember) {
@@ -162,7 +163,7 @@ export async function POST(req: NextRequest) {
     
     const isOwner = project.owner.toString() === userId;
     const isMember = project.members.some(
-      (memberId: any) => memberId.toString() === userId
+      (memberId: Types.ObjectId) => memberId.toString() === userId
     );
     
     if (!isOwner && !isMember) {

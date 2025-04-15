@@ -14,9 +14,10 @@ if (!MONGODB_URI) {
  * during API Route usage.
  */
 declare global {
+  // eslint-disable-next-line no-var
   var mongoose: {
-    conn: typeof mongoose | null;
-    promise: Promise<typeof mongoose> | null;
+    conn: mongoose.Connection | null;
+    promise: Promise<mongoose.Connection> | null;
   };
 }
 
@@ -26,7 +27,7 @@ if (!cached) {
   cached = global.mongoose = { conn: null, promise: null };
 }
 
-async function connectDB() {
+async function connectDB(): Promise<mongoose.Connection> {
   if (cached.conn) {
     return cached.conn;
   }
@@ -37,7 +38,7 @@ async function connectDB() {
     };
 
     cached.promise = mongoose.connect(MONGODB_URI, opts).then((mongoose) => {
-      return mongoose;
+      return mongoose.connection;
     });
   }
   
