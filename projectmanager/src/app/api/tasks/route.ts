@@ -50,7 +50,7 @@ export async function GET(req: NextRequest) {
       
       const isOwner = project.owner.toString() === userId;
       const isMember = project.members.some(
-        (memberId) => memberId.toString() === userId
+        (memberId: any) => memberId.toString() === userId
       );
       
       if (!isOwner && !isMember) {
@@ -162,7 +162,7 @@ export async function POST(req: NextRequest) {
     
     const isOwner = project.owner.toString() === userId;
     const isMember = project.members.some(
-      (memberId) => memberId.toString() === userId
+      (memberId: any) => memberId.toString() === userId
     );
     
     if (!isOwner && !isMember) {
