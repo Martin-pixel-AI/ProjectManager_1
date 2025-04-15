@@ -1,7 +1,7 @@
 'use client';
 
 import { Inter } from 'next/font/google';
-import { AuthProvider } from '@/lib/authContext';
+import AuthProvider from '@/components/layout/AuthProvider';
 import { Layout } from '@/components/layout/Layout';
 import './globals.css';
 

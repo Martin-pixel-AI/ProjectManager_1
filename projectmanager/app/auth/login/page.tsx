@@ -3,16 +3,17 @@
 import React, { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { useAuth } from '@/lib/authContext';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
+import { signIn } from 'next-auth/react';
 
 export default function LoginPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const [errors, setErrors] = useState<{ email?: string; password?: string; general?: string }>({});
   
-  const { login, error: authError, loading } = useAuth();
   const router = useRouter();
 
   const validateForm = () => {
@@ -40,7 +41,26 @@ export default function LoginPage() {
     e.preventDefault();
     
     if (validateForm()) {
-      await login(email, password);
+      try {
+        setLoading(true);
+        setError(null);
+        
+        const result = await signIn('credentials', {
+          redirect: false,
+          email,
+          password,
+        });
+        
+        if (result?.error) {
+          setError(result.error);
+        } else {
+          router.push('/dashboard');
+        }
+      } catch (err: any) {
+        setError('Login failed');
+      } finally {
+        setLoading(false);
+      }
     }
   };
 
@@ -61,9 +81,9 @@ export default function LoginPage() {
       <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
         <div className="bg-white py-8 px-4 shadow sm:rounded-lg sm:px-10">
           <form className="space-y-6" onSubmit={handleSubmit}>
-            {authError && (
+            {error && (
               <div className="rounded-md bg-red-50 p-4">
-                <div className="text-sm text-red-700">{authError}</div>
+                <div className="text-sm text-red-700">{error}</div>
               </div>
             )}
             

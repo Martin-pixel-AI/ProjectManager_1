@@ -4,7 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import axios from 'axios';
 import Link from 'next/link';
-import { useAuth } from '@/lib/authContext';
+import { useCurrentUser } from '@/src/lib/useCurrentUser';
 import { Button } from '@/components/ui/Button';
 import { Spinner } from '@/components/ui/Spinner';
 import { Project, Task } from '@/utils/types';
@@ -15,7 +15,7 @@ export default function DashboardPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   
-  const { user } = useAuth();
+  const { user, isAuthenticated, isLoading } = useCurrentUser();
   const router = useRouter();
 
   useEffect(() => {
@@ -44,13 +44,26 @@ export default function DashboardPage() {
       }
     };
     
-    if (user) {
+    if (isAuthenticated && !isLoading) {
       fetchData();
     }
-  }, [user]);
+  }, [isAuthenticated, isLoading]);
 
-  if (!user) {
-    router.push('/auth/login');
+  useEffect(() => {
+    if (!isLoading && !isAuthenticated) {
+      router.push('/auth/login');
+    }
+  }, [isLoading, isAuthenticated, router]);
+
+  if (isLoading) {
+    return (
+      <div className="flex justify-center my-12">
+        <Spinner size="lg" />
+      </div>
+    );
+  }
+
+  if (!isAuthenticated) {
     return null;
   }
 
@@ -58,7 +71,7 @@ export default function DashboardPage() {
     <div>
       <div className="mb-8">
         <h1 className="text-3xl font-bold mb-2">Dashboard</h1>
-        <p className="text-gray-600">Welcome back, {user.name}!</p>
+        <p className="text-gray-600">Welcome back, {user?.name}!</p>
       </div>
 
       {loading ? (

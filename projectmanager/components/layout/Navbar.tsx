@@ -1,12 +1,13 @@
 import React from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { useAuth } from '@/lib/authContext';
+import { useCurrentUser } from '@/src/lib/useCurrentUser';
 import { Button } from '@/components/ui/Button';
+import { signOut } from 'next-auth/react';
 
 export function Navbar() {
   const pathname = usePathname();
-  const { user, logout } = useAuth();
+  const { user, isAuthenticated, isLoading } = useCurrentUser();
 
   // Define navigation items
   const navItems = [
@@ -19,6 +20,10 @@ export function Navbar() {
   const adminNavItems = [
     { name: 'Admin', href: '/admin' },
   ];
+
+  const handleLogout = async () => {
+    await signOut({ redirect: true, callbackUrl: '/' });
+  };
 
   return (
     <nav className="bg-white shadow">
@@ -33,7 +38,7 @@ export function Navbar() {
           </div>
 
           {/* Navigation */}
-          {user && (
+          {isAuthenticated && !isLoading && (
             <div className="hidden md:block">
               <div className="ml-10 flex items-baseline space-x-4">
                 {navItems.map((item) => (
@@ -52,7 +57,7 @@ export function Navbar() {
                 ))}
 
                 {/* Admin-only nav items */}
-                {user.role === 'admin' && adminNavItems.map((item) => (
+                {user?.role === 'admin' && adminNavItems.map((item) => (
                   <Link
                     key={item.name}
                     href={item.href}
@@ -72,7 +77,7 @@ export function Navbar() {
 
           {/* User Menu */}
           <div className="flex items-center">
-            {user ? (
+            {isAuthenticated && !isLoading ? (
               <div className="flex items-center space-x-4">
                 <Link 
                   href="/settings" 
@@ -82,7 +87,7 @@ export function Navbar() {
                 </Link>
                 <Button 
                   variant="outline" 
-                  onClick={logout}
+                  onClick={handleLogout}
                 >
                   Logout
                 </Button>

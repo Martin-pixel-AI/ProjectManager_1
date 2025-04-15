@@ -3,15 +3,18 @@
 import React, { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { useAuth } from '@/src/lib/authContext';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
+import axios from 'axios';
+import { signIn } from 'next-auth/react';
 
 export default function RegisterPage() {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const [errors, setErrors] = useState<{
     name?: string;
     email?: string;
@@ -20,7 +23,6 @@ export default function RegisterPage() {
     general?: string;
   }>({});
 
-  const { register, error: authError, loading } = useAuth();
   const router = useRouter();
 
   const validateForm = () => {
@@ -69,7 +71,34 @@ export default function RegisterPage() {
     e.preventDefault();
 
     if (validateForm()) {
-      await register(name, email, password);
+      try {
+        setLoading(true);
+        setError(null);
+        
+        // Create user in database
+        await axios.post('/api/user', {
+          name,
+          email,
+          password,
+        });
+        
+        // Sign in with credentials
+        const result = await signIn('credentials', {
+          redirect: false,
+          email,
+          password,
+        });
+        
+        if (result?.error) {
+          setError(result.error);
+        } else {
+          router.push('/dashboard');
+        }
+      } catch (err: any) {
+        setError(err.response?.data?.message || 'Registration failed');
+      } finally {
+        setLoading(false);
+      }
     }
   };
 
@@ -90,9 +119,9 @@ export default function RegisterPage() {
       <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
         <div className="bg-white py-8 px-4 shadow sm:rounded-lg sm:px-10">
           <form className="space-y-6" onSubmit={handleSubmit}>
-            {authError && (
+            {error && (
               <div className="rounded-md bg-red-50 p-4">
-                <div className="text-sm text-red-700">{authError}</div>
+                <div className="text-sm text-red-700">{error}</div>
               </div>
             )}
 
