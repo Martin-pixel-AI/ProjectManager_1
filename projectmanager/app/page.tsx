@@ -2,11 +2,11 @@
 
 import React from 'react';
 import Link from 'next/link';
-import { useAuth } from '@/lib/authContext';
+import { useCurrentUser } from '@/src/lib/useCurrentUser';
 import { Button } from '@/components/ui/Button';
 
 export default function HomePage() {
-  const { user } = useAuth();
+  const { user, isAuthenticated } = useCurrentUser();
 
   return (
     <div className="flex flex-col items-center justify-center min-h-[calc(100vh-8rem)]">
@@ -41,7 +41,7 @@ export default function HomePage() {
       </div>
 
       <div className="flex gap-4">
-        {user ? (
+        {isAuthenticated ? (
           <Link href="/dashboard">
             <Button size="lg">Go to Dashboard</Button>
           </Link>

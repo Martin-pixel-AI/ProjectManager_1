@@ -8,9 +8,9 @@ const nextConfig = {
     // !! WARN !!
     ignoreBuildErrors: true,
   },
-  // Решаем проблемы с роутингом
+  // Позволяем серверу обрабатывать запросы через API
   experimental: {
-    appDir: true,
+    serverActions: true,
   },
 };
 

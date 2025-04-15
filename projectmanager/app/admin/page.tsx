@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import axios from 'axios';
-import { useAuth } from '@/lib/authContext';
+import { useCurrentUser } from '@/src/lib/useCurrentUser';
 import { Button } from '@/components/ui/Button';
 import { Spinner } from '@/components/ui/Spinner';
 
@@ -32,7 +32,7 @@ export default function AdminPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   
-  const { user } = useAuth();
+  const { user, isAuthenticated, isLoading } = useCurrentUser();
   const router = useRouter();
 
   useEffect(() => {
@@ -56,16 +56,26 @@ export default function AdminPage() {
       }
     };
     
-    if (user && user.role === 'admin') {
-      fetchData();
-    } else if (user) {
-      router.push('/dashboard');
-    } else {
-      router.push('/auth/login');
+    if (!isLoading) {
+      if (isAuthenticated && user?.role === 'admin') {
+        fetchData();
+      } else if (isAuthenticated) {
+        router.push('/dashboard');
+      } else {
+        router.push('/auth/login');
+      }
     }
-  }, [user, router]);
+  }, [user, isAuthenticated, isLoading, router]);
 
-  if (!user || user.role !== 'admin') {
+  if (isLoading) {
+    return (
+      <div className="flex justify-center my-12">
+        <Spinner size="lg" />
+      </div>
+    );
+  }
+
+  if (!isAuthenticated || user?.role !== 'admin') {
     return null;
   }
 

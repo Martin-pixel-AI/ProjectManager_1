@@ -4,7 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import axios from 'axios';
 import Link from 'next/link';
-import { useAuth } from '@/lib/authContext';
+import { useCurrentUser } from '@/src/lib/useCurrentUser';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { Spinner } from '@/components/ui/Spinner';
@@ -36,14 +36,16 @@ export default function NewProjectPage() {
   const [loading, setLoading] = useState(false);
   const [fetchingUsers, setFetchingUsers] = useState(true);
   
-  const { user } = useAuth();
+  const { user, isAuthenticated, isLoading } = useCurrentUser();
   const router = useRouter();
 
   useEffect(() => {
-    if (!user) {
+    if (!isAuthenticated && !isLoading) {
       router.push('/auth/login');
       return;
     }
+
+    if (isLoading || !isAuthenticated) return;
 
     // Set default dates
     const today = new Date();
@@ -60,7 +62,7 @@ export default function NewProjectPage() {
         const response = await axios.get('/api/users');
         // Filter out current user
         const filteredUsers = response.data.filter(
-          (u: { id: string }) => u.id !== user.id
+          (u: { id: string }) => u.id !== user?.id
         );
         setUsers(filteredUsers);
       } catch (error) {
@@ -71,7 +73,7 @@ export default function NewProjectPage() {
     };
     
     fetchUsers();
-  }, [user, router]);
+  }, [isAuthenticated, isLoading, user, router]);
 
   const validateForm = () => {
     const newErrors: {
@@ -132,7 +134,15 @@ export default function NewProjectPage() {
     }
   };
 
-  if (!user) {
+  if (isLoading) {
+    return (
+      <div className="flex justify-center my-12">
+        <Spinner size="lg" />
+      </div>
+    );
+  }
+
+  if (!isAuthenticated) {
     return null;
   }
 
@@ -258,7 +268,7 @@ export default function NewProjectPage() {
 
           <div className="flex justify-end space-x-3">
             <Link href="/projects">
-              <Button type="button" variant="outline">
+              <Button variant="outline" type="button">
                 Cancel
               </Button>
             </Link>

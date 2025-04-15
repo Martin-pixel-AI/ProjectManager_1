@@ -2,8 +2,8 @@ import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import { getToken } from "next-auth/jwt";
 
-// Расширяем тип JWT для включения нашего поля role
-interface CustomToken {
+// Определяем интерфейс для нашего JWT токена
+interface CustomJwtToken {
   id?: string;
   role?: string;
   name?: string;
@@ -14,8 +14,11 @@ interface CustomToken {
 }
 
 export async function middleware(request: NextRequest) {
-  // Получаем токен с явным указанием типа
-  const token = await getToken({ req: request, secret: process.env.JWT_SECRET }) as CustomToken | null;
+  const token = await getToken({ 
+    req: request, 
+    secret: process.env.JWT_SECRET 
+  }) as unknown as CustomJwtToken | null;
+
   const isAuthPage = request.nextUrl.pathname.startsWith('/auth');
   
   // Перенаправление аутентифицированных пользователей с auth-страниц

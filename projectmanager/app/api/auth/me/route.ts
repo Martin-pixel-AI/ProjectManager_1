@@ -4,6 +4,9 @@ import User from '@/src/models/User';
 import jwt from 'jsonwebtoken';
 import { headers } from 'next/headers';
 
+// Указываем, что этот маршрут должен быть динамическим, поскольку использует headers
+export const dynamic = 'force-dynamic';
+
 const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key';
 
 interface JwtPayload {
