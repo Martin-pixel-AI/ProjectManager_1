@@ -11,14 +11,14 @@ export function Navbar() {
 
   // Define navigation items
   const navItems = [
-    { name: 'Dashboard', href: '/dashboard' },
-    { name: 'Projects', href: '/projects' },
-    { name: 'Tasks', href: '/tasks' },
+    { name: 'Рабочий стол', href: '/dashboard' },
+    { name: 'Доска', href: '/projects' },
+    { name: 'Задачи', href: '/tasks' },
   ];
 
   // Define admin-only navigation items
   const adminNavItems = [
-    { name: 'Admin', href: '/admin' },
+    { name: 'Админ', href: '/admin' },
   ];
 
   const handleLogout = async () => {
@@ -83,22 +83,22 @@ export function Navbar() {
                   href="/settings" 
                   className="text-gray-700 hover:text-gray-900"
                 >
-                  Settings
+                  Настройки
                 </Link>
                 <Button 
                   variant="outline" 
                   onClick={handleLogout}
                 >
-                  Logout
+                  Выйти
                 </Button>
               </div>
             ) : (
               <div className="space-x-2">
                 <Link href="/auth/login">
-                  <Button variant="outline">Login</Button>
+                  <Button variant="outline">Войти</Button>
                 </Link>
                 <Link href="/auth/register">
-                  <Button>Register</Button>
+                  <Button>Регистрация</Button>
                 </Link>
               </div>
             )}
